@@ -1,0 +1,43 @@
+# Dependências
+/node_modules
+/vendor
+package-lock.json
+yarn.lock
+
+# Build e Public
+#/public/build
+/public/hot
+/public/storage
+/public/fonts-manifest.dev.json
+
+# Ambiente e Credenciais
+.env
+.env.backup
+.env.production
+/auth.json
+
+# Logs, Storage e Cache
+*.log
+/storage/*.key
+/storage/pail
+.phpunit.result.cache
+/.phpunit.cache
+
+# Máquinas Virtuais
+Homestead.json
+Homestead.yaml
+
+# Ferramentas de Desenvolvimento e IDEs (Laravel IDE Helper, etc)
+/.codex
+/.cursor/
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+.phpactor.json
+_ide_helper.php
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
