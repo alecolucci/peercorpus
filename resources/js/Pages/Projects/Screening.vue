@@ -72,13 +72,25 @@
       </div>
 
       <!-- Paginação do Laravel -->
-      <div class="mt-8 flex justify-center" v-if="articles.links.length > 3">
+      <div class="mt-8 flex justify-center" v-if="articles.links && articles.links.length > 3">
         <div class="flex gap-1">
-          <Link v-for="(link, i) in articles.links" :key="i" :href="link.url"
-            v-html="link.label"
-            class="px-4 py-2 text-sm border rounded-md"
-            :class="link.active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-300'"
-            :disabled="!link.url" />
+          <template v-for="(link, i) in articles.links" :key="i">
+            
+            <!-- Renderiza um texto desabilitado se a URL for null (ex: 'Anterior' na pág 1) -->
+            <span v-if="link.url === null"
+              v-html="link.label"
+              class="px-4 py-2 text-sm border rounded-md bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
+            ></span>
+            
+            <!-- Renderiza o Link clicável se a URL existir -->
+            <Link v-else 
+              :href="link.url"
+              v-html="link.label"
+              class="px-4 py-2 text-sm border rounded-md transition-colors"
+              :class="link.active ? 'bg-indigo-600 text-white border-indigo-600 font-medium' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-300'"
+            />
+            
+          </template>
         </div>
       </div>
 

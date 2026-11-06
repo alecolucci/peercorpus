@@ -154,7 +154,7 @@ class ArticleImportController extends Controller
                         'authors' => '',
                         'publication_year' => null,
                         'doi' => null,
-                        'status' => 'included',
+                        'status' => 'pending',
                         'created_at' => now()->toDateTimeString(),
                         'updated_at' => now()->toDateTimeString(),
                     ];
