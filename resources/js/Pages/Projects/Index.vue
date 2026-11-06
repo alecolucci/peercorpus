@@ -41,7 +41,7 @@
               <Link :href="route('projects.show', project.id)" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex-1 text-center">
                 Abrir Painel
               </Link>
-              <Link :href="route('projects.edit', project.id)" class="text-gray-500 hover:text-gray-700 text-sm font-medium px-2">
+              <Link v-if="project.can_edit" :href="route('projects.edit', project.id)" class="text-gray-500 hover:text-gray-700 text-sm font-medium px-2">
                 Editar
               </Link>
             </div>

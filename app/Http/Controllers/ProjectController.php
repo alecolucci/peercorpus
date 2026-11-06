@@ -11,10 +11,27 @@ class ProjectController extends Controller
     // Listar projetos
     public function index(Request $request)
     {
-        $projects = Project::where('owner_id', $request->user()->id)
-            ->withCount('articles') // Traz a contagem de artigos já importados
+        $userId = $request->user()->id;
+
+        $projects = Project::where('owner_id', $userId)
+            ->orWhereHas('team', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            // Carrega a relação com a equipe especificamente para o usuário logado
+            ->with(['team' => function($query) use ($userId) {
+                $query->where('user_id', $userId);
+            }])
+            ->withCount('articles')
             ->latest()
-            ->get();
+            ->get()
+            // Injeta a permissão de edição diretamente no objeto do projeto
+            ->map(function ($project) use ($userId) {
+                $isOwner = $project->owner_id === $userId;
+                $teamRole = $project->team->first()?->pivot->role;
+                
+                $project->can_edit = $isOwner || $teamRole === 'admin';
+                return $project;
+            });
 
         return Inertia::render('Projects/Index', [
             'projects' => $projects
@@ -52,14 +69,16 @@ class ProjectController extends Controller
     // Painel do Projeto (Onde ficará o importador)
     public function show(Project $project)
     {
-        // Garante que o usuário tem permissão
-        if ($project->owner_id !== auth()->id()) {
-            abort(403);
+        // Verifica se é dono OU se é membro da equipe
+        $isOwner = $project->owner_id === auth()->id();
+        $isTeamMember = $project->team()->where('user_id', auth()->id())->exists();
+
+        if (!$isOwner && !$isTeamMember) {
+            abort(403, 'Você não tem acesso a este projeto.');
         }
 
-        // Carrega as estatísticas do projeto de uma só vez com subqueries otimizadas
         $project->loadCount([
-            'articles', // Total geral
+            'articles', 
             'articles as pending_count' => function ($query) { $query->where('status', 'pending'); },
             'articles as included_count' => function ($query) { $query->where('status', 'included'); },
             'articles as excluded_count' => function ($query) { $query->where('status', 'excluded'); },
@@ -73,17 +92,23 @@ class ProjectController extends Controller
     // Tela de edição
     public function edit(Project $project)
     {
-        if ($project->owner_id !== auth()->id()) abort(403);
+        $isOwner = $project->owner_id === auth()->id();
+        $isAdmin = $project->team()->where('user_id', auth()->id())->where('role', 'admin')->exists();
+
+        // Apenas Donos ou Administradores podem editar título/descrição
+        if (!$isOwner && !$isAdmin) abort(403, 'Você não tem permissão para editar os dados deste projeto.');
 
         return Inertia::render('Projects/Edit', [
             'project' => $project
         ]);
     }
 
-    // Atualizar projeto
     public function update(Request $request, Project $project)
     {
-        if ($project->owner_id !== auth()->id()) abort(403);
+        $isOwner = $project->owner_id === auth()->id();
+        $isAdmin = $project->team()->where('user_id', auth()->id())->where('role', 'admin')->exists();
+
+        if (!$isOwner && !$isAdmin) abort(403);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -95,10 +120,10 @@ class ProjectController extends Controller
         return redirect()->route('projects.index')->with('success', 'Projeto atualizado!');
     }
 
-    // Remover projeto
     public function destroy(Project $project)
     {
-        if ($project->owner_id !== auth()->id()) abort(403);
+        // APENAS o dono absoluto pode deletar o projeto e apagar a pesquisa
+        if ($project->owner_id !== auth()->id()) abort(403, 'Apenas o proprietário pode excluir o projeto.');
 
         $project->delete();
 

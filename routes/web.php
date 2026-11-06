@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ArticleImportController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ScreeningController;
+use App\Http\Controllers\ProjectTeamController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -36,6 +37,13 @@ Route::middleware('auth')->group(function () {
     // Rotas de Triagem
     Route::get('/projects/{project}/screening', [ScreeningController::class, 'index'])->name('projects.screening');
     Route::put('/articles/{article}/status', [ScreeningController::class, 'updateStatus'])->name('articles.status.update');
+
+    // Gestão de Equipe (Team)
+    Route::get('/projects/{project}/team', [ProjectTeamController::class, 'index'])->name('projects.team.index');
+    Route::post('/projects/{project}/team', [ProjectTeamController::class, 'store'])->name('projects.team.store');
+    Route::put('/projects/{project}/team/{user}', [ProjectTeamController::class, 'update'])->name('projects.team.update');
+    Route::delete('/projects/{project}/team/{user}', [ProjectTeamController::class, 'destroy'])->name('projects.team.destroy');
+    Route::delete('/projects/{project}/invitations/{invitation}', [ProjectTeamController::class, 'destroyInvitation'])->name('projects.invitations.destroy');
 });
 
 require __DIR__.'/auth.php';

@@ -7,9 +7,16 @@
           <p class="text-sm text-gray-500 mt-1">Status: {{ project.status }}</p>
         </div>
         
-        <button @click="deleteProject" class="text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-md text-sm font-medium transition">
-          Excluir Projeto
-        </button>
+        <div class="flex items-center gap-3">
+          <Link :href="route('projects.team.index', project.id)" class="text-gray-700 hover:bg-gray-200 bg-gray-100 px-4 py-2 rounded-md text-sm font-medium transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            Equipe
+          </Link>
+
+          <button v-if="project.owner_id === $page.props.auth.user.id" @click="deleteProject" class="text-red-600 hover:bg-red-50 px-4 py-2 rounded-md text-sm font-medium transition">
+            Excluir Projeto
+          </button>
+        </div>
       </div>
     </template>
 
@@ -21,7 +28,7 @@
           <!-- Coluna Principal -->
           <div class="lg:col-span-2 space-y-6">
             
-            <!-- Visão Geral (Agora dinâmica) -->
+            <!-- Visão Geral -->
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 class="text-lg font-medium text-gray-900 mb-2">Visão Geral</h3>
               <p class="text-gray-600 mb-6">{{ project.description || 'Nenhuma descrição fornecida.' }}</p>

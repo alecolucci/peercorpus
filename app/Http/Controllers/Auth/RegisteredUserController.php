@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\ProjectInvitation;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,13 +40,22 @@ class RegisteredUserController extends Controller
 
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
+            'email' => strtolower($request->email), // Garanta que fica minúsculo
             'password' => Hash::make($request->password),
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
+
+        $pendingInvitations = ProjectInvitation::where('email', $user->email)->get();
+    
+        foreach ($pendingInvitations as $invitation) {
+            // Vincula o usuário ao projeto
+            $invitation->project->team()->attach($user->id, ['role' => $invitation->role]);
+            // Apaga o convite pendente
+            $invitation->delete();
+        }
 
         return redirect(route('dashboard', absolute: false));
     }
