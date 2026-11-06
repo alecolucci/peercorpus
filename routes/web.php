@@ -5,6 +5,8 @@ use App\Http\Controllers\ArticleImportController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ScreeningController;
 use App\Http\Controllers\ProjectTeamController;
+use App\Models\Project;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -18,14 +20,36 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Dashboard com os projetos recentes
+    Route::get('/dashboard', function (Request $request) {
+        $userId = $request->user()->id;
+
+        // Busca apenas os 4 projetos mais recentes que o usuário tem acesso
+        $recentProjects = Project::where('owner_id', $userId)
+            ->orWhereHas('team', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->withCount('articles')
+            ->latest()
+            ->take(4)
+            ->get();
+
+        // Conta o total geral de projetos para a estatística
+        $totalProjects = Project::where('owner_id', $userId)
+            ->orWhereHas('team', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })->count();
+
+        return Inertia::render('Dashboard', [
+            'recentProjects' => $recentProjects,
+            'totalProjects' => $totalProjects
+        ]);
+    })->name('dashboard');
 
     // CRUD de Projetos
     Route::resource('projects', ProjectController::class);
