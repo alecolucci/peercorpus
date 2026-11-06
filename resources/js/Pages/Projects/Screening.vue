@@ -128,13 +128,32 @@ const setStatus = (articleId, status) => {
     preserveScroll: true,
     preserveState: true,
     onSuccess: () => {
-      // Avança o foco para o próximo artigo
-      if (activeIndex.value < props.articles.data.length - 1) {
-        activeIndex.value++;
-      } else if (props.articles.next_page_url) {
-        // Se foi o último da página, vai para a próxima página automaticamente
-        router.get(props.articles.next_page_url);
+      
+      // Se estivermos na aba "Todos" (onde o artigo não some ao ser votado),
+      // faz sentido o cursor descer fisicamente para o próximo artigo.
+      if (props.currentFilter === 'all') {
+        if (activeIndex.value < props.articles.data.length - 1) {
+          activeIndex.value++;
+        } else if (props.articles.next_page_url) {
+          activeIndex.value = 0;
+          router.get(props.articles.next_page_url);
+        }
+      } 
+      // Nas abas "Pendentes", "Incluídos" ou "Excluídos", o artigo VAI SUMIR da tela.
+      // O próximo artigo subirá automaticamente para a posição atual (activeIndex).
+      // Portanto, não incrementamos nada, deixando o foco travado onde o usuário está lendo.
+      else {
+        // Se a página atual ficar vazia e houver uma próxima página (repaginação do Laravel)
+        if (props.articles.data.length === 0 && props.articles.next_page_url) {
+          activeIndex.value = 0;
+          router.get(props.articles.next_page_url);
+        } 
+        // Trava de segurança: se o usuário classificar o último item visível na tela
+        else if (activeIndex.value >= props.articles.data.length && props.articles.data.length > 0) {
+          activeIndex.value = props.articles.data.length - 1;
+        }
       }
+      
     }
   });
 };
