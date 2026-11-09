@@ -5,6 +5,7 @@ use App\Http\Controllers\ArticleImportController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ScreeningController;
 use App\Http\Controllers\ProjectTeamController;
+use App\Http\Controllers\CodingController;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Application;
@@ -68,6 +69,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/projects/{project}/team/{user}', [ProjectTeamController::class, 'update'])->name('projects.team.update');
     Route::delete('/projects/{project}/team/{user}', [ProjectTeamController::class, 'destroy'])->name('projects.team.destroy');
     Route::delete('/projects/{project}/invitations/{invitation}', [ProjectTeamController::class, 'destroyInvitation'])->name('projects.invitations.destroy');
+    
+    // Codificação (Qualitative Coding)
+    Route::get('/projects/{project}/coding', [CodingController::class, 'index'])->name('projects.coding');
+    Route::post('/projects/{project}/tags', [CodingController::class, 'storeTag'])->name('projects.tags.store');
+    Route::post('/articles/{article}/tags/toggle', [CodingController::class, 'toggleTag'])->name('articles.tags.toggle');
 });
 
 require __DIR__.'/auth.php';

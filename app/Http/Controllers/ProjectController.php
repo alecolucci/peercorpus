@@ -82,6 +82,7 @@ class ProjectController extends Controller
             'articles as pending_count' => function ($query) { $query->where('status', 'pending'); },
             'articles as included_count' => function ($query) { $query->where('status', 'included'); },
             'articles as excluded_count' => function ($query) { $query->where('status', 'excluded'); },
+            'articles as coded_count' => function ($query) { $query->has('tags'); },
         ]);
 
         return Inertia::render('Projects/Show', [
