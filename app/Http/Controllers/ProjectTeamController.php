@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\ProjectInvitation;
 use App\Mail\ProjectInvitationMail;
+use App\Mail\UserAddedToProjectMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -54,8 +55,13 @@ class ProjectTeamController extends Controller
             if ($project->team()->where('user_id', $userToAdd->id)->exists()) {
                 return back()->withErrors(['email' => 'Este usuário já faz parte do projeto.']);
             }
+            
             $project->team()->attach($userToAdd->id, ['role' => $validated['role']]);
-            return back()->with('success', 'Membro adicionado com sucesso!');
+            
+            // Dispara o e-mail de notificação avisando o usuário
+            Mail::to($email)->send(new UserAddedToProjectMail($project, $validated['role']));
+
+            return back()->with('success', 'Membro adicionado e notificado com sucesso!');
         }
 
         // CENÁRIO 2: Usuário NÃO EXISTE (Convite)
